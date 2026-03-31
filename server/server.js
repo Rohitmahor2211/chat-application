@@ -6,6 +6,8 @@ const cors = require('cors')
 const router = require('./routes/routes')
 const db_connection = require('./config/db')
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+app.use('/uploads', express.static('uploads'));
 
 app.use(cors({
     origin: 'http://localhost:5173',

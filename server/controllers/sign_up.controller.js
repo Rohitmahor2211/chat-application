@@ -9,7 +9,7 @@ const sign_up = async (req, res) => {
 
     let existing_user = await userSchema.findOne({ email })
     if (existing_user && existing_user.isVerified) {
-        return res.json({
+        return res.status(200).json({
             message: "user alrady registered..!"
         })
     }
@@ -33,7 +33,7 @@ const sign_up = async (req, res) => {
     const token = jwt.sign(
         { userId: existing_user._id },
         process.env.JWT_secret,
-        { expiresIn: "10m" }
+        { expiresIn: "10d" }
     )
 
     try {
@@ -45,13 +45,13 @@ const sign_up = async (req, res) => {
             html: `<div style="font-weight:600; text-align:center; font-size:"25px";>${code}</div>`,
         });
 
-        // console.log("Message sent: %s", info.messageId);
+        console.log("Message sent: %s", info.messageId);
     } catch (err) {
         console.error("Error while sending mail:", err);
     }
 
-    res.json({
-        message: "Data Received..!",
+    res.status(201).json({
+        message: "User Creataed..!",
         status: res.status,
         jwt_token: token
     })
@@ -60,27 +60,28 @@ const sign_up = async (req, res) => {
 
 const email_verification = async (req, res) => {
     try {
-        const { code, token } = req.body;
+        const { code } = req.body;
+        console.log(code)
+        const userId = req.user.userId; // 🔥 from middleware
 
-        const decoded_token = jwt.verify(token, process.env.JWT_secret)
-        const matched_user = await userSchema.findById(decoded_token.userId)
+        const matched_user = await userSchema.findById(userId);
 
         if (!matched_user) {
             return res.status(404).json({
                 message: "User Not found..!"
-            })
+            });
         }
 
         if (matched_user.otp != code) {
             return res.status(400).json({
                 message: "Invalid Otp..!"
-            })
+            });
         }
 
         if (matched_user.otpExpiry < Date.now()) {
             return res.status(401).json({
                 message: "Otp Expired..!"
-            })
+            });
         }
 
         matched_user.isVerified = true;
@@ -90,14 +91,14 @@ const email_verification = async (req, res) => {
         await matched_user.save();
 
         res.status(200).json({
-            message: "user Verified successfully..!"
-        })
-    }
-    catch (error) {
+            message: "User verified successfully..!"
+        });
+
+    } catch (error) {
         res.status(500).json({
-            message: "server Error"
-        })
+            message: "Server Error"
+        });
     }
-}
+};
 
 module.exports = { sign_up, email_verification }

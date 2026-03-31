@@ -44,9 +44,17 @@ const Email_varification = () => {
             inputRefs.current[0].focus()
 
             try {
-                const response = await api.post('/email-verify', { code, token })
+                const response = await api.post("/verify-otp",
+                    { code },
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
+
                 if (response) {
-                    navigate('/login')
+                    navigate('/user-profile')
                 }
             }
             catch (error) {

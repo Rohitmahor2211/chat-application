@@ -32,12 +32,16 @@ const SignUp_form = () => {
     setLoading(true)
     try {
       const response = await api.post('/signup', data)
+      console.log(response)
       setLoading((prev) => (!prev))
-      // console.log(response)
 
-      // const jwt_token = response.jwt_token
-      // console.log(jwt_token)
-      if (response.status === 200) {
+      if (response.status == 200) {
+        alert("User Alrady Registred..!")
+        reset()
+      }
+
+
+      if (response.status === 201) {
         const jwt_token = response.data.jwt_token
         localStorage.setItem("token", jwt_token)
         reset()
