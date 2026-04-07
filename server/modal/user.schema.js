@@ -65,6 +65,12 @@ const userSchema = new mongoose.Schema({
   password: String,
   profilePic: String,
 
+  // 🔥 Blocked users
+  blockedUsers: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User_Account"
+  }],
+
 }, {
   timestamps: true
 });

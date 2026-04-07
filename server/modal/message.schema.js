@@ -29,6 +29,22 @@ const messageSchema = new mongoose.Schema({
     seen: {
         type: Boolean,
         default: false
+    },
+
+    // 🔥 Emoji reactions
+    reactions: [{
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User_Account"
+        },
+        emoji: String
+    }],
+
+    // 🔥 Auto-delete after 30 days
+    expiresAt: {
+        type: Date,
+        default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        index: { expires: 0 }
     }
 
 }, { timestamps: true });

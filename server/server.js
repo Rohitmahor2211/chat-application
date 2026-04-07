@@ -29,23 +29,40 @@ const io = new Server(server, {
 let users = {};
 
 io.on("connection", (socket) => {
-    console.log("User connected");
+    // console.log("User connected");
 
     socket.on("join", (userId) => {
         users[userId] = socket.id;
     });
 
     // 🔥 👉 ADD TYPING HERE
-    socket.on("typing", ({ receiverId }) => {
-        const receiverSocketId = users[receiverId];
+    socket.on("typing", async ({ receiverId }) => {
+        const userId = Object.keys(users).find(key => users[key] === socket.id);
+        if (!userId) return;
 
+        const receiverSocketId = users[receiverId];
         if (receiverSocketId) {
-            io.to(receiverSocketId).emit("typing");
+            try {
+                const userSchema = require('./modal/user.schema');
+                const [me, receiver] = await Promise.all([
+                    userSchema.findById(userId).select("blockedUsers"),
+                    userSchema.findById(receiverId).select("blockedUsers")
+                ]);
+
+                const isBlockedByMe = me?.blockedUsers?.some(id => id.toString() === receiverId.toString());
+                const isBlockedByThem = receiver?.blockedUsers?.some(id => id.toString() === userId.toString());
+
+                if (!isBlockedByMe && !isBlockedByThem) {
+                    io.to(receiverSocketId).emit("typing");
+                }
+            } catch (err) {
+                console.error("Typing indicator block check failed:", err);
+            }
         }
     });
 
     socket.on("disconnect", () => {
-        console.log("User disconnected");
+        // console.log("User disconnected");
     });
 });
 
@@ -56,5 +73,5 @@ app.use('/', router);
 
 db_connection()
 server.listen(PORT, () => {
-    console.log('Server is running on PORT', PORT)
+    // console.log('Server is running on PORT', PORT)
 })

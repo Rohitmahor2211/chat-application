@@ -5,7 +5,7 @@ const { user_profile } = require('../controllers/user_profile.controller')
 const upload = require("../middleware/upload")
 const { user_login, user_logout } = require('../controllers/user_login.controller')
 const { dashboard, searchUsers } = require('../controllers/dashboard_data.controller')
-const { create_chat, messagess, sendMessage, markMessagesSeen } = require('../controllers/chat_room.controller')
+const { create_chat, messagess, sendMessage, markMessagesSeen, reactToMessage, blockUser, unblockUser, deleteMessage } = require('../controllers/chat_room.controller')
 
 router.post('/signup', sign_up)
 router.post("/verify-otp", verifyToken, email_verification);
@@ -18,5 +18,9 @@ router.post('/chat', verifyToken, create_chat)
 router.get('/messages/:chatId', verifyToken, messagess)
 router.post('/message', verifyToken, upload.single('image'), sendMessage)
 router.post('/messages/mark-seen', verifyToken, markMessagesSeen)
+router.post('/messages/react', verifyToken, reactToMessage)
+router.post('/block-user', verifyToken, blockUser)
+router.post('/unblock-user', verifyToken, unblockUser)
+router.delete('/message/:messageId', verifyToken, deleteMessage)
 
 module.exports = router;

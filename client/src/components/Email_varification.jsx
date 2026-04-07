@@ -58,7 +58,7 @@ const Email_varification = () => {
                 }
             }
             catch (error) {
-                console.log(error)
+                // console.log(error)
 
                 if (error.response) {
                     const status = error.response.status;

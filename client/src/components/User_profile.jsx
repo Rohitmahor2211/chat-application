@@ -23,6 +23,14 @@ const User_profile = () => {
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
+            // 🛡️ Client-side validation
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error("Please upload a valid image (JPEG, PNG, or WEBP)");
+                if (fileInputRef.current) fileInputRef.current.value = "";
+                return;
+            }
+
             const imageUrl = URL.createObjectURL(file);
             setProfilePicSrc(imageUrl);
 
@@ -63,20 +71,28 @@ const User_profile = () => {
                 }
             );
 
-            if (response) {
+            if (response.status === 200) {
+                toast.success("Profile created successfully!");
+                
+                // ✅ Cleanup and Redirect
+                if (profilePicSrc) {
+                    URL.revokeObjectURL(profilePicSrc);
+                    setProfilePicSrc(null);
+                }
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = "";
+                }
+                
                 setFormData({
                     profileImage: null,
                     profileName: "",
                     password: ""
-                })
-            }
+                });
 
-            if (response.status == 200) {
-                toast.success("Profile created successfully!");
                 navigate('/login')
-                setloading(false)
                 localStorage.removeItem("token")
             }
+            setloading(false)
 
             // ✅ Clear the Image Preview
             if (profilePicSrc) {
@@ -91,17 +107,18 @@ const User_profile = () => {
             // console.log(response)
         } catch (error) {
             console.error("error :- ", error);
-            setFormData({
-                profileImage: null,
-                profileName: "",
-                password: ""
-            })
-            if (error.status == 404) {
-                return toast.error("Profile Pic Not Valid")
+            const serverMessage = error.response?.data?.message;
+            
+            if (serverMessage) {
+                toast.error(serverMessage);
+            } else if (error.status === 401) {
+                toast.error("Session expired. Please sign up again.");
+                navigate('/signup');
+            } else {
+                toast.error("Failed to update profile. Please try again.");
             }
-            toast.error("Failed to create profile. Please try again.");
+            
             setloading(false);
-
         }
 
     }

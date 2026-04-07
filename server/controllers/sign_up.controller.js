@@ -25,7 +25,7 @@ const sign_up = async (req, res) => {
             })
         }
         catch (error) {
-            console.log(error)
+            // console.log(error)
         }
     }
     await existing_user.save()
@@ -45,9 +45,9 @@ const sign_up = async (req, res) => {
             html: `<div style="font-weight:600; text-align:center; font-size:"25px";>${code}</div>`,
         });
 
-        console.log("Message sent: %s", info.messageId);
+        // console.log("Message sent: %s", info.messageId);
     } catch (err) {
-        console.error("Error while sending mail:", err);
+        // console.error("Error while sending mail:", err);
     }
 
     res.status(201).json({
@@ -61,7 +61,7 @@ const sign_up = async (req, res) => {
 const email_verification = async (req, res) => {
     try {
         const { code } = req.body;
-        console.log(code)
+        // console.log(code)
         const userId = req.user.userId; // 🔥 from middleware
 
         const matched_user = await userSchema.findById(userId);

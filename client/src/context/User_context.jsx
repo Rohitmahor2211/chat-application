@@ -26,7 +26,7 @@ const User_context = ({ children }) => {
                     setData(response.data.response)
                 }
             } catch (error) {
-                console.log(error)
+                // console.log(error)
                 if (error.response && (error.response.status === 401 || error.response.status === 403)) {
                     setUser(false);
                     SetMyID("");

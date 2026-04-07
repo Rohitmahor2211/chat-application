@@ -21,14 +21,16 @@ const verifyToken = (req, res, next) => {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_secret);
-        console.log("decoded", decoded)
-        req.user = decoded; // 🔥 attach to request
-
-        next(); // move to controller
+        req.user = decoded;
+        next();
     } catch (error) {
-        return res.status(401).json({
-            message: "Invalid or expired token"
-        });
+        if (error.name === "TokenExpiredError") {
+            return res.status(401).json({ message: "Session expired. Please log in again." });
+        }
+        if (error.name === "JsonWebTokenError") {
+            return res.status(401).json({ message: "Invalid session. Please log in again." });
+        }
+        return res.status(401).json({ message: "Authentication failed" });
     }
 };
 

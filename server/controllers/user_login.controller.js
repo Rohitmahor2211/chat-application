@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken")
 
 const user_login = async (req, res) => {
     const { email, password } = req.body
-    console.log(email)
+    // console.log(email)
 
     try {
         const exist_user = await userSchema.findOne({ email })

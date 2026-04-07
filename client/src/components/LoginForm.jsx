@@ -47,7 +47,7 @@ export function LoginForm({
         e.preventDefault()
         try {
             const response = await api.post('/login', data)
-            console.log(response)
+            // console.log(response)
             if (response.status == 200) {
                 toast.success("Login Successful!");
                 setUser(true)

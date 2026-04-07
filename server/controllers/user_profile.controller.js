@@ -14,70 +14,67 @@ const user_profile = async (req, res) => {
     // 2. File info is available here
     const file = req.file;
     if (!file) {
-        return res.status(400).json({ error: "No file uploaded" });
+        return res.status(400).json({ message: "No file uploaded" });
     }
 
     try {
-        const exesting_profile = await userSchema.findById(userId);
+        const existing_profile = await userSchema.findById(userId);
 
-        if (!exesting_profile) {
-            return res.status(404).json({ message: "User not found" });
+        if (!existing_profile) {
+            return res.status(404).json({ message: "User account not found" });
         }
 
-        if (exesting_profile.profileName === profileName) {
-            return res.status(400).json({
-                message: "profile already exists..!"
-            });
+        // 🛡️ Check if name is taken by SOMEONE ELSE
+        const nameTaken = await userSchema.findOne({ profileName, _id: { $ne: userId } });
+        if (nameTaken) {
+            return res.status(400).json({ message: "This profile name is already taken..!" });
+        }
 
-        } else {
-
+        // 🛡️ Validate file if present
+        if (file) {
             const validateFile = fileSchema.parse(file)
-            console.log("File received and validated:", validateFile.originalname);
             if (!validateFile) {
-                return res.status(404).json({
-                    message: "file in not valide formet..!"
-                })
-            }
-
-            const cloudinary_response = await cloudinary.uploader.upload(req.file.path, {
-                folder: "instagram" // Folder name in Cloudinary
-            })
-            fs.unlinkSync(req.file.path)
-
-            const hashPassword = await bcrypt.hash(password, 10);
-            try {
-                exesting_profile.profileName = profileName;
-                exesting_profile.password = hashPassword;
-                exesting_profile.profilePic = cloudinary_response.secure_url;
-
-                await exesting_profile.save();
-
-                console.log(exesting_profile);
-                return res.status(200).json({
-                    message: "user profile created successfully..! 🚀",
-                    user: profileName,
-                    imageUrl: cloudinary_response.secure_url
-                });
-            } catch (error) {
-                return res.status(400).json({
-                    message: "user profile not created..!",
-                    error: error.message
-                });
+                return res.status(400).json({ message: "File is not in valid format..!" })
             }
         }
+
+        let cloudinary_url = existing_profile.profilePic;
+        if (file) {
+            const cloudinary_response = await cloudinary.uploader.upload(file.path, {
+                folder: "instagram"
+            })
+            cloudinary_url = cloudinary_response.secure_url;
+            fs.unlinkSync(file.path)
+        }
+
+        const hashPassword = password ? await bcrypt.hash(password, 10) : existing_profile.password;
+
+        existing_profile.profileName = profileName || existing_profile.profileName;
+        existing_profile.password = hashPassword;
+        existing_profile.profilePic = cloudinary_url;
+
+        await existing_profile.save();
+
+        return res.status(200).json({
+            message: "User profile updated successfully..! 🚀",
+            user: existing_profile.profileName,
+            imageUrl: existing_profile.profilePic
+        });
     }
     catch (error) {
         if (file && file.path) {
             fs.unlink(file.path, (err) => {
                 if (err) console.error("Error deleting invalid file:", err);
-                else console.log("Successfully deleted invalid upload:", file.path);
+                else {
+                    // console.log("Successfully deleted invalid upload:", file.path);
+                }
             });
         }
 
         if (error instanceof z.ZodError) {
-            return res.status(400).json({ errors: error.errors, message: "zod schema not matched" });
+            return res.status(400).json({ errors: error.errors, message: "Validation failed" });
         }
-        res.status(500).json({ error: "Something went wrong" });
+        res.status(500).json({ message: "Something went wrong" });
     }
 
 };

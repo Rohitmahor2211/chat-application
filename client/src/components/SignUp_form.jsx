@@ -32,12 +32,12 @@ const SignUp_form = () => {
 
 
   const form_data = async (data) => {
-    console.log(data)
+    // console.log(data)
     setLoading(true)
     notify()
     try {
       const response = await api.post('/signup', data)
-      console.log(response)
+      // console.log(response)
       setLoading(false)
 
       if (response.status === 201) {
