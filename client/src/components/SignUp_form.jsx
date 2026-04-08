@@ -36,7 +36,11 @@ const SignUp_form = () => {
     setLoading(true)
     notify()
     try {
-      const response = await api.post('/signup', data)
+      const response = await api.post('/signup', data, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
       // console.log(response)
       setLoading(false)
 

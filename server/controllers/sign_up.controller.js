@@ -4,9 +4,10 @@ const userSchema = require('../modal/user.schema')
 const jwt = require('jsonwebtoken')
 
 const sign_up = async (req, res) => {
+    console.log("Full Request Body:", req.body); // 👈 Debugging log
     const { name, email, mobile, age, day, month, year, city, country, policy } = req.body;
     const code = otp()
-    console.log(email, otp)
+    console.log("Processing Signup for:", email, "OTP:", code)
 
     let existing_user = await userSchema.findOne({ email })
     if (existing_user && existing_user.isVerified) {
@@ -26,8 +27,16 @@ const sign_up = async (req, res) => {
             })
         }
         catch (error) {
-            // console.log(error)
+            console.error("Error creating user object:", error);
+            return res.status(400).json({
+                message: "Invalid user data provided.",
+                error: error.message
+            });
         }
+    }
+
+    if (!existing_user) {
+        return res.status(500).json({ message: "Failed to initialize user data." });
     }
     await existing_user.save()
 

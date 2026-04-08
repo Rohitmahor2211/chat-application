@@ -14,13 +14,14 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser());
+const server = http.createServer(app)
 
 const allowedOrigins = [
     process.env.CLIENT_URL,       // production (vercel)
     process.env.CLIENT_URL_DEV,   // local frontend
     "http://localhost:5173",
     "http://localhost:5000"
-];
+].filter(Boolean);
 
 app.use(cors({
     origin: function (origin, callback) {
@@ -36,10 +37,15 @@ app.use(cors({
     credentials: true
 }));
 
-const server = http.createServer(app)
+
+// app.use(cors({
+//     origin: "http://localhost:5173",
+//     credentials: true
+// }))
 const io = new Server(server, {
     cors: {
         origin: allowedOrigins,
+        // origin: "http://localhost:5173",
         credentials: true,
         methods: ["GET", "POST"]
     }
@@ -89,7 +95,10 @@ app.set("io", io);
 app.set("users", users);
 
 app.use('/', router);
-
+app.get("/test", (req, res) => {
+    console.log("✅ TEST API HIT");
+    res.send("OK");
+});
 
 db_connection()
 server.listen(PORT, () => {
