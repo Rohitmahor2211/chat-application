@@ -41,7 +41,7 @@ const user_profile = async (req, res) => {
         let cloudinary_url = existing_profile.profilePic;
         if (file) {
             const cloudinary_response = await cloudinary.uploader.upload(file.path, {
-                folder: "instagram"
+                folder: "chat-application"
             })
             cloudinary_url = cloudinary_response.secure_url;
             fs.unlinkSync(file.path)
