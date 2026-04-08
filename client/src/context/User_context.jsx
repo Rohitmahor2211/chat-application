@@ -13,7 +13,7 @@ const User_context = ({ children }) => {
         return localStorage.getItem("myId") || ""
     })
 
-    const [dashboardOpen , setDeshboardOpen] = useState(() => {
+    const [dashboardOpen, setDeshboardOpen] = useState(() => {
         const storedUser = localStorage.getItem("userLoggedIn")
         return storedUser ? JSON.parse(storedUser) : false
     })
@@ -41,18 +41,18 @@ const User_context = ({ children }) => {
         } else {
             localStorage.removeItem("userLoggedIn")
         }
-        
+
         if (myId) {
             localStorage.setItem("myId", myId)
         } else {
             localStorage.removeItem("myId")
         }
-        
+
         fetchData()
     }, [user, myId])
 
     return (
-        <userContext.Provider value={{ setUser, data, SetMyID, myId, setData,dashboardOpen , setDeshboardOpen }}>
+        <userContext.Provider value={{ setUser, data, SetMyID, myId, setData, dashboardOpen, setDeshboardOpen }}>
             {children}
         </userContext.Provider>
     )
