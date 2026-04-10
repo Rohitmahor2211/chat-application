@@ -13,6 +13,7 @@ const { Server } = require("socket.io");
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, '../client/dist')));
 app.use(cookieParser());
 const server = http.createServer(app)
 
@@ -98,6 +99,10 @@ app.use('/', router);
 app.get("/test", (req, res) => {
     console.log("✅ TEST API HIT");
     res.send("OK");
+});
+
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
 });
 
 db_connection()
