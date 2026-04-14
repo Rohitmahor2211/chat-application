@@ -9,6 +9,7 @@ const db_connection = require('./config/db')
 const cookieParser = require('cookie-parser')
 const http = require("http");
 const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -24,11 +25,16 @@ const allowedOrigins = [
     "http://localhost:5000"
 ].filter(Boolean);
 
+const isAllowedOrigin = (origin) => {
+    if (!origin) return true;
+    if (allowedOrigins.includes(origin)) return true;
+    if (origin.startsWith("http://192.168.") || origin.startsWith("http://127.0.0.1") || origin.startsWith("http://10.")) return true;
+    return false;
+};
+
 app.use(cors({
     origin: function (origin, callback) {
-        console.log("Request Origin:", origin); // 👈 debug
-
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (isAllowedOrigin(origin)) {
             callback(null, true);
         } else {
             console.log("Blocked by CORS:", origin);
@@ -38,15 +44,15 @@ app.use(cors({
     credentials: true
 }));
 
-
-// app.use(cors({
-//     origin: "http://localhost:5173",
-//     credentials: true
-// }))
 const io = new Server(server, {
     cors: {
-        origin: allowedOrigins,
-        // origin: "http://localhost:5173",
+        origin: function (origin, callback) {
+            if (isAllowedOrigin(origin)) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not allowed by CORS"));
+            }
+        },
         credentials: true,
         methods: ["GET", "POST"]
     }
@@ -54,11 +60,26 @@ const io = new Server(server, {
 
 let users = {};
 
-io.on("connection", (socket) => {
-    // console.log("User connected");
+// 🛡️ Middleware: Authenticate Socket Connection
+io.use((socket, next) => {
+    try {
+        const token = socket.handshake.auth.token;
+        if (!token) return next(new Error("Authentication error: No token provided"));
+        
+        const decoded = jwt.verify(token, process.env.JWT_secret);
+        socket.userId = decoded.userId; // Save userId to socket object securely
+        next();
+    } catch (err) {
+        next(new Error("Authentication error: Invalid or expired token"));
+    }
+});
 
-    socket.on("join", (userId) => {
-        users[userId] = socket.id;
+io.on("connection", (socket) => {
+    // console.log("User connected:", socket.userId);
+
+    // 🔥 Trust the secure token ID, ignore generic "join" payloads from untrusted clients
+    socket.on("join", () => {
+        users[socket.userId] = socket.id;
     });
 
     // 🔥 👉 ADD TYPING HERE
@@ -89,6 +110,9 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         // console.log("User disconnected");
+        if (socket.userId && users[socket.userId] === socket.id) {
+            delete users[socket.userId]; // Clean up memory leak!
+        }
     });
 });
 

@@ -14,7 +14,7 @@ import {
     FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { LogIn } from "lucide-react"
+import { LogIn, Loader2 } from "lucide-react"
 import { NavLink, useNavigate } from "react-router-dom"
 import { useContext, useState } from "react"
 import api from "../api/api"
@@ -33,6 +33,7 @@ export function LoginForm({
         email: "",
         password: ""
     })
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -45,11 +46,13 @@ export function LoginForm({
 
     const handleSubmit = async (e) => {
         e.preventDefault()
+        setIsLoading(true)
         try {
             const response = await api.post('/login', data)
             // console.log(response)
             if (response.status == 200) {
                 toast.success("Login Successful!");
+                localStorage.setItem("token", response.data.jwt_token);
                 setUser(true)
                 SetMyID(response.data.user._id)
                 setDeshboardOpen(true)
@@ -59,6 +62,8 @@ export function LoginForm({
             console.error(error)
             toast.error(error.response?.data?.message || "Invalid credentials. Please try again.");
             setDeshboardOpen(false)
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -113,7 +118,10 @@ export function LoginForm({
                                 />
                             </Field>
                             <Field className="mt-6 ">
-                                <Button type="submit" className="cursor-pointer">Login</Button>
+                                <Button type="submit" className="cursor-pointer" disabled={isLoading}>
+                                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    {isLoading ? "Logging in..." : "Login"}
+                                </Button>
                                 <FieldDescription className="text-center">
                                     Don&apos;t have an account? <NavLink to='/'>Sign up</NavLink>
                                 </FieldDescription>

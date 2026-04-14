@@ -5,6 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { NavLink, useNavigate } from 'react-router-dom'
 import api from '../api/api'
 import { ToastContainer, toast } from 'react-toastify';
+import { Loader2 } from "lucide-react"
 
 const SignUp_form = () => {
 
@@ -238,9 +239,15 @@ const SignUp_form = () => {
 
           <button
             type="submit"
-            className="w-full py-4 px-6 text-white font-bold text-sm bg-linear-to-r from-brand-soft via-brand to-brand-strong rounded-2xl shadow-xl shadow-brand/20 hover:shadow-brand/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 transform"
+            disabled={loading}
+            className="w-full py-4 px-6 text-white font-bold text-sm bg-linear-to-r from-brand-soft via-brand to-brand-strong rounded-2xl shadow-xl shadow-brand/20 hover:shadow-brand/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 transform disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            {loading ? "loading" : "Create Account"}
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin w-5 h-5" />
+                Processing...
+              </>
+            ) : "Create Account"}
           </button>
         </form>
 

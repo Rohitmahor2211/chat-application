@@ -61,7 +61,7 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  profileName: { type: String, unique: true },
+  profileName: { type: String, unique: true, sparse: true, default: undefined },
   password: String,
   profilePic: String,
 

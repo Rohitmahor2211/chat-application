@@ -1,8 +1,9 @@
 // const transporter = require('../config/email');
 const otp = require('./otp')
 const userSchema = require('../modal/user.schema')
-const jwt = require('jsonwebtoken')
-const mg = require('../config/email')
+const jwt = require('jsonwebtoken');
+const tranEmailApi = require('../config/email');
+// const mg = require('../config/email')
 
 const sign_up = async (req, res) => {
     console.log("Full Request Body:", req.body); // 👈 Debugging log
@@ -48,13 +49,13 @@ const sign_up = async (req, res) => {
     )
 
     try {
-        await mg.messages.create(process.env.MAILGUN_DOMAIN, {
-            from: `Chat App <mailgun@${process.env.MAILGUN_DOMAIN}>`,
-            to: [email],
-            subject: "Account Verification OTP",
-            text: "Your OTP code",
-            html: `<div style="font-size:25px;text-align:center;font-weight:600;">${code}</div>`,
-        });
+        // await mg.messages.create(process.env.MAILGUN_DOMAIN, {
+        //     from: `Chat App <mailgun@${process.env.MAILGUN_DOMAIN}>`,
+        //     to: [email],
+        //     subject: "Account Verification OTP",
+        //     text: "Your OTP code",
+        //     html: `<div style="font-size:25px;text-align:center;font-weight:600;">${code}</div>`,
+        // });
 
         // const info = await transporter.sendMail({
         //     from: `"Example Team" < ${process.env.Email_user_account} >`,
@@ -64,6 +65,16 @@ const sign_up = async (req, res) => {
         //     html: `<div style="font - weight: 600; text- align: center; font - size: 25px; ">${code}</div>`,
         // });
         // console.log("Message sent: % s", info.messageId);
+
+
+        const result = await tranEmailApi.sendTransacEmail({
+            sender: { email: `${process.env.Email_user_account}`, name: "Chat App" },
+            to: [{ email: email }],
+            subject: "Email Verification code",
+            htmlContent: `<h2>Your OTP is: ${code}</h2>`
+        });
+
+        console.log("Email sent:", result);
         console.log("Email sent successfully");
 
         await existing_user.save(); // 👈 after email success

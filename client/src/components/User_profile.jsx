@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, User, Lock, Eye, EyeOff } from 'lucide-react';
+import { Camera, User, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import api from '../api/api';
 import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -73,7 +73,7 @@ const User_profile = () => {
 
             if (response.status === 200) {
                 toast.success("Profile created successfully!");
-                
+
                 // ✅ Cleanup and Redirect
                 if (profilePicSrc) {
                     URL.revokeObjectURL(profilePicSrc);
@@ -82,7 +82,7 @@ const User_profile = () => {
                 if (fileInputRef.current) {
                     fileInputRef.current.value = "";
                 }
-                
+
                 setFormData({
                     profileImage: null,
                     profileName: "",
@@ -108,7 +108,7 @@ const User_profile = () => {
         } catch (error) {
             console.error("error :- ", error);
             const serverMessage = error.response?.data?.message;
-            
+
             if (serverMessage) {
                 toast.error(serverMessage);
             } else if (error.status === 401) {
@@ -117,7 +117,7 @@ const User_profile = () => {
             } else {
                 toast.error("Failed to update profile. Please try again.");
             }
-            
+
             setloading(false);
         }
 
@@ -210,12 +210,18 @@ const User_profile = () => {
 
                     {/* Submit Button */}
                     <button
-                        className="w-full mt-4 py-3.5 px-4 bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500 text-white font-bold rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] transform hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden relative"
+                        disabled={loading}
+                        className="w-full mt-4 py-3.5 px-4 bg-linear-to-r from-purple-600 via-fuchsia-600 to-pink-600 hover:from-purple-500 hover:via-fuchsia-500 hover:to-pink-500 text-white font-bold rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] transform hover:-translate-y-0.5 transition-all duration-300 group overflow-hidden relative disabled:opacity-70 disabled:hover:translate-y-0 disabled:cursor-not-allowed"
                     >
                         <span className="relative z-10 flex items-center justify-center gap-2">
-                            {loading ? "loading" : "Save Profile"}
+                            {loading ? (
+                                <>
+                                    <Loader2 className="animate-spin w-5 h-5" />
+                                    Saving...
+                                </>
+                            ) : "Save Profile"}
                         </span>
-                        <div className="absolute inset-0 h-full w-full bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700 ease-in-out"></div>
+                        {!loading && <div className="absolute inset-0 h-full w-full bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-700 ease-in-out"></div>}
                     </button>
                 </form>
             </div>

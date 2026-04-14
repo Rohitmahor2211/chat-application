@@ -29,7 +29,9 @@ const User_context = ({ children }) => {
                 // console.log(error)
                 if (error.response && (error.response.status === 401 || error.response.status === 403)) {
                     setUser(false);
+                    setDeshboardOpen(false);
                     SetMyID("");
+                    localStorage.removeItem("token");
                 }
             }
         }

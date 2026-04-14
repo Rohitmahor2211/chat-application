@@ -4,7 +4,6 @@ const cloudinary = require('../config/cloudinary')
 const fs = require('fs')
 const userSchema = require('../modal/user.schema');
 
-
 const create_chat = async (req, res) => {
     const { receiverId } = req.body;
     const senderId = req.user.userId;
@@ -26,7 +25,6 @@ const create_chat = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 }
-
 
 const messagess = async (req, res) => {
     try {
@@ -50,7 +48,6 @@ const messagess = async (req, res) => {
         });
     }
 }
-
 
 const sendMessage = async (req, res) => {
     try {
@@ -94,7 +91,7 @@ const sendMessage = async (req, res) => {
         if (receiverSocketId) {
             // 🔥 1. send actual message
             io.to(receiverSocketId).emit("receiveMessage", newMessage);
-            
+
             // 🔥 2. send notification
             io.to(receiverSocketId).emit("newMessageNotification", {
                 senderId,
@@ -111,7 +108,6 @@ const sendMessage = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
-
 
 const markMessagesSeen = async (req, res) => {
     try {
@@ -142,7 +138,6 @@ const markMessagesSeen = async (req, res) => {
         res.status(500).json({ message: "Server Error" })
     }
 };
-
 
 // 🔥 React to a message with emoji
 const reactToMessage = async (req, res) => {
@@ -190,7 +185,6 @@ const reactToMessage = async (req, res) => {
     }
 };
 
-
 // 🔥 Block a user
 const blockUser = async (req, res) => {
     try {
@@ -214,7 +208,6 @@ const blockUser = async (req, res) => {
         res.status(500).json({ message: "Server Error" });
     }
 };
-
 
 // 🔥 Unblock a user
 const unblockUser = async (req, res) => {
@@ -240,7 +233,6 @@ const unblockUser = async (req, res) => {
     }
 };
 
-
 // 🔥 Delete a message
 const deleteMessage = async (req, res) => {
     try {
@@ -256,6 +248,22 @@ const deleteMessage = async (req, res) => {
         }
 
         const chatId = msg.chatId;
+
+        // 🔥 Clean up image from Cloudinary if it exists
+        if (msg.image && typeof msg.image === 'string' && msg.image.includes("cloudinary.com")) {
+            try {
+                const urlParts = msg.image.split('/');
+                const publicIdWithExtension = urlParts[urlParts.length - 1];
+                const folder = urlParts[urlParts.length - 2];
+                const publicId = publicIdWithExtension.split('.')[0];
+                if (folder && publicId) {
+                    await cloudinary.uploader.destroy(`${folder}/${publicId}`);
+                }
+            } catch (e) {
+                console.error("Failed to delete cloudinary image on message delete", e);
+            }
+        }
+
         await messageSchema.findByIdAndDelete(messageId);
 
         // 🔥 Notify participants via socket
@@ -276,6 +284,5 @@ const deleteMessage = async (req, res) => {
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 };
-
 
 module.exports = { create_chat, messagess, sendMessage, markMessagesSeen, reactToMessage, blockUser, unblockUser, deleteMessage }
